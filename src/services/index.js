@@ -1,14 +1,10 @@
 import http from 'axios'
 import { checkAuthorization } from './interceptors/authorization'
-import OAuth from '@app/oauth'
 
 export default {
   run () {
     http.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
-    const oauth = new OAuth()
-    if (oauth.getAuthHeader()) {
-      http.defaults.headers['Authorization'] = oauth.getAuthHeader()
-    }
+
     // Add a request interceptor
     http.interceptors.request.use(
       function (config) {

@@ -13,7 +13,7 @@ class User extends Service {
     let UserService = new User()
     try {
       let response = await UserService.http.get(Config('api.current_user_url'))
-      Fire('user:fetched', response)
+      Fire('user:fetched', response.data)
       return response
     } catch (error) {
       throw error

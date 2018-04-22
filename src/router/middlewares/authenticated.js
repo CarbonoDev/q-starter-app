@@ -1,5 +1,6 @@
 import OAuth from 'src/app/oauth'
 const oAuth = new OAuth()
+
 export function Authenticated ({ to, from, next }) {
   if (to.name === 'app.login' && oAuth.isAuthenticated()) {
     return next({ path: '/' })
