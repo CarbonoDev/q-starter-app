@@ -8,5 +8,13 @@ export default {
     } catch (error) {
       return new Promise((resolve, reject) => reject(error))
     }
+  },
+  currentUser () {
+    const currentUser = Http.get(Config('api.current_user_url'))
+    return new Promise((resolve, reject) => {
+      currentUser
+        .then(user => resolve(user.data))
+        .catch(error => reject(error))
+    })
   }
 }

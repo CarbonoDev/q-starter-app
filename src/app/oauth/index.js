@@ -6,7 +6,7 @@
 import { Cookies, LocalStorage } from 'quasar'
 import HttpService from './auth.service'
 import { Config } from 'helpers'
-
+import Store from 'src/store'
 class OAuth {
   constructor () {
     this.storages = {
@@ -19,6 +19,7 @@ class OAuth {
   logout () {
     this.session.remove('access_token')
     this.session.remove('refresh_token')
+    Store.dispatch('users/destroyCurrentUser')
   }
 
   guest () {
@@ -48,6 +49,24 @@ class OAuth {
           reject(error)
         })
     })
+  }
+
+  currentUser () {
+    if (this.session.has('access_token')) {
+      return new Promise((resolve, reject) => {
+        HttpService.currentUser()
+          .then(response => {
+            resolve(response)
+          })
+          .catch(error => {
+            if (error.response && (error.response.status === 401 || error.response.status === 429)) {
+              this.logout()
+            }
+            reject(error)
+          })
+      })
+    }
+    return new Promise(resolve => resolve(null))
   }
 
   getAuthHeader () {
