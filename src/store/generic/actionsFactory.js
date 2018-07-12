@@ -1,22 +1,10 @@
-import JSON_ from 'json_'
 import { DB } from 'src/app/database/index'
-
-const toSnakeCase = (obj) => {
-  return JSON.parse(JSON_.stringify(obj))
-}
-
-const toCamelCase = (obj) => {
-  return JSON_.parse(JSON.stringify(obj))
-}
-
 export const build = (NAMESPACE, options) => {
   const DEFAULT = {
     uniqueKey: 'id',
     dbTable: NAMESPACE
   }
-  const CONFIG = { ...DEFAULT,
-    ...options
-  }
+  const CONFIG = { ...DEFAULT, ...options }
   const COLLECTION = DB[CONFIG['dbTable']]
   const MUTATIONS = {
     ADD: NAMESPACE + '/add',
@@ -31,25 +19,17 @@ export const build = (NAMESPACE, options) => {
     state
   }, payload) => {
     return new Promise((resolve, reject) => {
-      let item = { ...{
-        id: null
-      },
-      ...payload
-      }
+      let item = { ...{ id: null }, ...payload }
       if (!item.id) {
         delete item.id
-        COLLECTION.add(toSnakeCase(item)).then((itemId) => {
+        COLLECTION.add(item).then((itemId) => {
           item.id = itemId
-          commit(MUTATIONS.ADD, item, {
-            root: true
-          })
+          commit(MUTATIONS.ADD, item, { root: true })
           resolve(item)
         }, reject)
       } else {
-        COLLECTION.put(toSnakeCase(item)).then((itemId) => {
-          commit(MUTATIONS.UPDATE, item, {
-            root: true
-          })
+        COLLECTION.put(item).then((itemId) => {
+          commit(MUTATIONS.UPDATE, item, { root: true })
           resolve(item)
         }, reject)
       }
@@ -61,17 +41,13 @@ export const build = (NAMESPACE, options) => {
       COLLECTION.toArray().then((collection) => {
         collection.map((item) => {
           actions.get(store, item.id).then((storedItemId) => {
-            store.commit(MUTATIONS.UPDATE, toCamelCase(item), {
-              root: true
-            })
+            store.commit(MUTATIONS.UPDATE, item, { root: true })
           }, (err) => {
             if (err) {
               console.log('Error getting ' + NAMESPACE)
               console.log(err)
             }
-            store.commit(MUTATIONS.ADD, toCamelCase(item), {
-              root: true
-            })
+            store.commit(MUTATIONS.ADD, item, { root: true })
           })
         })
         resolve(collection)
@@ -79,24 +55,17 @@ export const build = (NAMESPACE, options) => {
     })
   }
 
-  actions.get = ({
-    commit,
-    state
-  }, itemId) => {
+  actions.get = ({ commit, state }, itemId) => {
     return new Promise((resolve, reject) => {
       const item = state._collection[itemId]
       if (item) {
         return resolve(item)
       }
 
-      COLLECTION.where({
-        id: itemId
-      }).first().then((item) => {
+      COLLECTION.where({ id: itemId }).first().then((item) => {
         if (item) {
-          commit(MUTATIONS.ADD, toCamelCase(item), {
-            root: true
-          })
-          resolve(toCamelCase(item))
+          commit(MUTATIONS.ADD, item, { root: true })
+          resolve(item)
         } else {
           reject(item)
         }
@@ -106,17 +75,10 @@ export const build = (NAMESPACE, options) => {
     })
   }
 
-  actions.delete = ({
-    commit,
-    state
-  }, itemId) => {
+  actions.delete = ({ commit, state }, itemId) => {
     return new Promise((resolve, reject) => {
-      COLLECTION.where({
-        id: itemId
-      }).delete().then(() => {
-        commit(MUTATIONS.DELETE, itemId, {
-          root: true
-        })
+      COLLECTION.where({ id: itemId }).delete().then(() => {
+        commit(MUTATIONS.DELETE, itemId, { root: true })
         resolve(itemId)
       }, (err) => {
         reject(err)
@@ -124,28 +86,17 @@ export const build = (NAMESPACE, options) => {
     })
   }
 
-  actions.getByKey = ({
-    commit,
-    state,
-    getters
-  }, {
-    key,
-    value
-  }) => {
+  actions.getByKey = ({ commit, state, getters }, { key, value }) => {
     return new Promise((resolve, reject) => {
-      const item = getters.all.find(item => item[key] === value)
+      const item = getters.all().find(item => item[key] === value)
       if (item) {
         return resolve(item)
       }
 
-      COLLECTION.where(toSnakeCase({
-        [key]: value
-      })).first().then((item) => {
+      COLLECTION.where({ [key]: value }).first().then((item) => {
         if (item) {
-          commit(MUTATIONS.ADD, toCamelCase(item), {
-            root: true
-          })
-          resolve(toCamelCase(item))
+          commit(MUTATIONS.ADD, item, { root: true })
+          resolve(item)
         } else {
           reject(item)
         }
@@ -168,12 +119,12 @@ export const build = (NAMESPACE, options) => {
       if (items && items.length) {
         return resolve(items)
       }
-      COLLECTION.where(toSnakeCase({
+      COLLECTION.where({
         [key]: value
-      })).toArray().then((items) => {
+      }).toArray().then((items) => {
         if (items) {
           resolve(items.map(item => {
-            item = getters.hydrateRelationshipAttributes(toCamelCase(item))
+            item = getters.hydrateRelationshipAttributes(item)
             commit(MUTATIONS.ADD, item, {
               root: true
             })
