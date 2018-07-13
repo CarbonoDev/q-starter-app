@@ -26,7 +26,6 @@
 </template>
 <script>
 import { QInput, QField, QBtn, QCard, QCardTitle, QCardMain, Notify } from 'quasar'
-import { mapActions } from 'vuex'
 export default {
   data () {
     return {
@@ -37,7 +36,9 @@ export default {
     }
   },
   methods: {
-    loginError () {
+    loginError (error) {
+      console.log(error)
+
       Notify.create({
         message: 'Email or password incorrect',
         icon: 'lock',
@@ -57,12 +58,9 @@ export default {
         this.$router.replace(redirection)
       } catch (error) {
         // Error in Login
-        console.log(error)
-        this.loginError()
+        this.loginError(error)
       }
-    },
-    ...mapActions('users', [])
-
+    }
   },
   components: {
     QField,
