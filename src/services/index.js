@@ -1,14 +1,11 @@
 import http from 'axios'
 import { checkAuthorization } from './interceptors/authorization'
 import OAuth from '@app/oauth'
-
+const oauth = new OAuth()
 export default {
   run () {
     http.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest'
-    const oauth = new OAuth()
-    if (oauth.getAuthHeader()) {
-      http.defaults.headers['Authorization'] = oauth.getAuthHeader()
-    }
+
     // Add a request interceptor
     http.interceptors.request.use(
       function (config) {
@@ -30,6 +27,9 @@ export default {
       },
       function (error) {
         // Do something with response error
+        if (error.response && error.response.status === 401) {
+          oauth.logout()
+        }
         return Promise.reject(error)
       }
     )

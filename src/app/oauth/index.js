@@ -6,7 +6,7 @@
 import { Cookies, LocalStorage } from 'quasar'
 import HttpService from './auth.service'
 import { Config } from 'helpers'
-
+import Store from 'src/store'
 class OAuth {
   constructor () {
     this.storages = {
@@ -17,9 +17,9 @@ class OAuth {
   }
 
   logout () {
-    HttpService.destroySession()
     this.session.remove('access_token')
     this.session.remove('refresh_token')
+    Store.dispatch('users/destroyCurrentUser')
   }
 
   guest () {
@@ -42,7 +42,6 @@ class OAuth {
       HttpService.attemptLogin(data)
         .then(response => {
           this.storeSession(response.data)
-          this.addAuthHeaders()
           resolve(response)
         })
         .catch(error => {
@@ -52,7 +51,7 @@ class OAuth {
     })
   }
 
-  getUser () {
+  currentUser () {
     if (this.session.has('access_token')) {
       return new Promise((resolve, reject) => {
         HttpService.currentUser()
@@ -60,6 +59,9 @@ class OAuth {
             resolve(response)
           })
           .catch(error => {
+            if (error.response && (error.response.status === 401 || error.response.status === 429)) {
+              this.logout()
+            }
             reject(error)
           })
       })
@@ -69,23 +71,17 @@ class OAuth {
 
   getAuthHeader () {
     if (this.session.has('access_token')) {
-      let access_token = this.getItem('access_token') // eslint-disable-line camelcase
-      return Config('auth.oauth_type') + ' ' + access_token // eslint-disable-line camelcase
+      let access_token = this.getItem('access_token')
+      return Config('auth.oauth_type') + ' ' + access_token
     }
     return null
   }
 
   getItem (key) {
     if (Config('auth.default_storage') === 'LocalStorage') {
-      // eslint-disable-line eqeqeq
       return this.session.get.item(key)
     }
     return this.session.get(key)
-  }
-
-  addAuthHeaders () {
-    let header = this.getAuthHeader()
-    HttpService.addAuthorizationHeader(header)
   }
 
   storeSession (data) {
@@ -93,7 +89,6 @@ class OAuth {
     let time = data.expires_in / hourInMilliSeconds
 
     if (Config('auth.default_storage') === 'LocalStorage') {
-      // eslint-disable-line eqeqeq
       this.session.set('access_token', data.access_token)
       this.session.set('refresh_token', data.access_token)
     } else {

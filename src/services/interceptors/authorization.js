@@ -1,4 +1,4 @@
-import OAuth from 'src/app/oauth'
+import OAuth from '@app/oauth'
 let oAuth = new OAuth()
 
 export function checkAuthorization (config) {

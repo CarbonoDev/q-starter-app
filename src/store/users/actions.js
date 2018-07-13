@@ -1,18 +1,10 @@
 import User from 'services/user.service'
-export const getUsers = async ({ commit, state }, payload) => {
-  try {
-    const users = await User.get()
-    commit('users/setUsersList', users, {
-      root: true
-    })
-  } catch (error) {
-    throw error
-  }
-}
 
 export const getCurrentUser = async ({ commit, state }, payload) => {
-  if (state.currentUser) return state.currentUser
-  let user_promise = User.currentUser() // eslint-disable-line
+  if (state.currentUser) {
+    return state.currentUser
+  }
+  let user_promise = User.currentUser()
   user_promise
     .then(user => {
       commit('users/setCurrentUser', user, {
@@ -25,10 +17,15 @@ export const getCurrentUser = async ({ commit, state }, payload) => {
     })
 }
 
+export const setCurrentUser = (vuex, user) => {
+  const { commit } = vuex
+  commit('users/setCurrentUser', user, {
+    root: true
+  })
+}
+
 export const destroyCurrentUser = ({ commit, state }, payload) => {
-  commit('users/setCurrentUser', {
-    data: null
-  }, {
+  commit('users/setCurrentUser', null, {
     root: true
   })
 }
