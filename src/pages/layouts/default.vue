@@ -6,7 +6,7 @@
           q-icon(name="menu")
         q-toolbar-title Carbono App
 
-    q-layout-drawer(v-model="leftDrawerOpen" content-class="bg-grey-2")
+    q-layout-drawer(v-model="leftDrawerOpen" content-class="bg-white")
       navigation
     q-page-container
       router-view

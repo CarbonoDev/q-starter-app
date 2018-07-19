@@ -1,40 +1,20 @@
+import Route from 'vue-routisan'
+import { guest, web, auth } from 'src/router/middlewares'
+// shorthand
+Route.setViewResolver((component) => require('src/pages/' + component).default)
 
-export default [
-  {
-    path: '/',
-    component: () => import('layouts/default'),
-    children: [
-      {
-        path: '',
-        name: 'app.home',
-        component: () => import('pages/index'),
-        meta: {
-          requiresAuth: true
-        }
-      },
-      {
-        path: '/info',
-        name: 'app.info',
-        component: () => import('pages/info'),
-        meta: {
-          requiresAuth: true
-        }
-      }
-    ]
-  },
-  {
-    path: '/login',
-    name: 'app.login',
-    component: () => import('pages/Login'),
-    meta: {
-      requiresAuth: false
-    }
-    // children: [{ path: ', component: () => import('pages/index') }]
-  },
+Route.view('/', 'layouts/default')
+  .guard(web)
+  .children(() => {
+    Route.view('', 'index').name('app.home').guard(auth)
+    Route.view('info', 'info').name('app.info').guard(auth)
+  })
 
-  {
-    // Always leave this as last one
-    path: '*',
-    component: () => import('pages/404')
-  }
-]
+Route.view('/', 'layouts/default')
+  .guard(web)
+  .children(() => {
+    Route.view('/login', 'Login').name('app.login').guard(guest)
+  })
+Route.view('*', '404').name('app.404')
+
+export default Route.all()

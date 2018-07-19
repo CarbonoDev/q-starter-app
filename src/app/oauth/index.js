@@ -3,10 +3,10 @@
  * [Quasar LocalStorage] http://quasar-framework.org/components/web-storage.html
  **************************************************/
 
-import { Cookies, LocalStorage } from 'quasar'
-import HttpService from './auth.service'
 import { Config } from 'helpers'
-
+import { Cookies, LocalStorage } from 'quasar'
+import Store from 'src/store'
+import AuthService from './auth.service'
 class OAuth {
   constructor () {
     this.storages = {
@@ -19,6 +19,7 @@ class OAuth {
   logout () {
     this.session.remove('access_token')
     this.session.remove('refresh_token')
+    Store.dispatch('users/destroyCurrentUser')
   }
 
   guest () {
@@ -38,7 +39,7 @@ class OAuth {
     // We merge grant type and client secret stored in configuration
     Object.assign(data, Config('auth.oauth'))
     return new Promise((resolve, reject) => {
-      HttpService.attemptLogin(data)
+      AuthService.attemptLogin(data)
         .then(response => {
           this.storeSession(response.data)
           resolve(response)
@@ -48,6 +49,24 @@ class OAuth {
           reject(error)
         })
     })
+  }
+
+  currentUser () {
+    if (this.session.has('access_token')) {
+      return new Promise((resolve, reject) => {
+        AuthService.currentUser()
+          .then(response => {
+            resolve(response)
+          })
+          .catch(error => {
+            if (error.response && (error.response.status === 401 || error.response.status === 429)) {
+              this.logout()
+            }
+            reject(error)
+          })
+      })
+    }
+    return new Promise(resolve => resolve(null))
   }
 
   getAuthHeader () {
