@@ -1,19 +1,14 @@
 import User from 'services/user.service'
 
-export const getCurrentUser = async ({ commit, state }, payload) => {
-  if (state.currentUser) {
-    return state.currentUser
-  }
-  let user_promise = User.currentUser()
-  user_promise
+export const getCurrentUser = async ({ commit, state, getters }, payload) => {
+  if (state.currentUser) return state.currentUser
+
+  return User.currentUser()
     .then(user => {
       commit('users/setCurrentUser', user, {
         root: true
       })
-    })
-    .catch(error => {
-      console.log('There was an error :c')
-      throw error
+      return getters['currentUser']
     })
 }
 
