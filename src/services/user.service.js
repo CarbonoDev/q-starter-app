@@ -11,12 +11,9 @@ class User extends Service {
 
   static currentUser () {
     let UserService = new User()
-    let response = UserService.http.get(Config('api.current_user_url'))
-    return new Promise((resolve, reject) => {
-      response
-        .then(user => resolve(user.data))
-        .catch(error => reject(error))
-    })
+    return UserService.http.get(Config('api.current_user_url'))
+      .then(httpResponse => httpResponse.data)
+      .then(responseBody => responseBody.data)
   }
 }
 
