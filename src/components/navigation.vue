@@ -1,13 +1,14 @@
 <template lang="pug">
   q-list.menu-list(no-border link inset-delimiter)
+
     .center(v-if="currentUser")
-      img.user-avatar(:src="currentUser.picture_url")
+      img.user-avatar(:src="currentUser.photoUrl")
     q-item(v-if="currentUser")
       q-item-main
-        q-item-tile(label) {{ currentUser.first_name }}
+        q-item-tile(label) {{ currentUser.name }}
         q-item-tile(sublabel) {{ currentUser.email }}
-
     q-item-separator(v-if="currentUser")
+
     q-item(@click.native="$router.replace({name : 'app.home'})")
       q-item-side(icon="home")
       q-item-main(label="Home" sublabel="")
@@ -23,14 +24,13 @@
 </template>
 
 <script>
-import { openURL, QItemSeparator, QItemSide, QItemTile } from 'quasar'
+import { QItemSeparator, QItemSide, QItemTile } from 'quasar'
 export default {
   name: 'Navigation',
   data () {
     return {}
   },
   methods: {
-    openURL,
     logout () {
       this.$oauth.logout()
       this.$router.replace({ name: 'app.login' })
@@ -38,7 +38,7 @@ export default {
   },
   computed: {
     currentUser () {
-      return this.$store.state.users.currentUser
+      return this.$store.getters['users/currentUser']
     }
   },
   components: {
