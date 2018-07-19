@@ -5,14 +5,14 @@
         span(my-slot="subtitle")
           h5.title.text-indigo.color-5 Login
       q-card-main
-        form(@submit.prevent="authenticate")
+        form(@submit.prevent="authenticate" :disabled="flags.submitting")
           q-field.email(
             icon="email"
             type="email"
             label=""
             helper=""
             error-label="We need a valid email"
-            )
+          )
             q-input(v-model="form.username" stack-label="Email" required)
           q-field.password(
             icon="lock"
@@ -22,16 +22,23 @@
           )
             q-input(type="password" v-model="form.password" stack-label="Password" required)
           .row.justify-start.items-center
-            q-btn(type="submit" big class="bg-primary full-width text-white") Login
+            q-btn(type="submit" big class="bg-primary full-width text-white")
+              span(v-show="!flags.submitting") Login
+              q-inner-loading(:visible="flags.submitting")
+                q-spinner-dots
+
 </template>
 <script>
-import { QInput, QField, QBtn, QCard, QCardTitle, QCardMain, Notify } from 'quasar'
+import { QInput, QField, QBtn, QCard, QCardTitle, QCardMain, Notify, QInnerLoading, QSpinnerDots } from 'quasar'
 export default {
   data () {
     return {
       form: {
         username: null,
         password: null
+      },
+      flags: {
+        submitting: false
       }
     }
   },
@@ -48,6 +55,9 @@ export default {
       })
     },
     async authenticate () {
+      if (this.flags.submitting) { return }
+
+      this.flags.submitting = true
       const { username, password } = this.form
       try {
         let authentication = await this.$oauth.login(username, password)
@@ -55,9 +65,11 @@ export default {
         if (this.$route.query.redirect && authentication) {
           redirection = this.$route.query.redirect
         }
+
         this.$router.replace(redirection)
       } catch (error) {
         // Error in Login
+        this.flags.submitting = false
         this.loginError(error)
       }
     }
@@ -68,7 +80,9 @@ export default {
     QBtn,
     QCard,
     QCardTitle,
-    QCardMain
+    QCardMain,
+    QInnerLoading,
+    QSpinnerDots
   }
 }
 </script>
