@@ -4,9 +4,15 @@ export const build = (options) => {
   }
   const CONFIG = { ...DEFAULTS, ...options }
   const getters = {}
+
+  getters.hydrateRelationshipAttributes = () => (item) => item
+  getters.hydrateRelationships = () => (item) => item
+
   getters.all = (state, getters, rootState, rootGetters) => {
     return state.collection.map((itemId) => {
-      return getters.hydrateRelationships(state._collection[itemId])
+      return getters.hydrateRelationshipAttributes(state._collection[itemId])
+    }).map(item => {
+      return getters.hydrateRelationships(item)
     })
   }
 
@@ -14,20 +20,38 @@ export const build = (options) => {
     return state._collection[itemId]
   }
 
-  if (CONFIG.hydrateRelationships) {
-    getters.hydrateRelationships = (state, getters, rootState, rootGetters) => (item) => {
-      const FOREIGN_GETTER = rootGetters[CONFIG.hydrateRelationships.foreignGetter]
-      const FOREIGN_KEY = CONFIG.hydrateRelationships.foreignKey
-      const FOREIGN_NAME = CONFIG.hydrateRelationships.foreignName
-      const FOREIGN_VALUE = CONFIG.hydrateRelationships.foreignValue
+  if (Array.isArray(CONFIG.hydrateRelationshipAttributes)) {
+    getters.hydrateRelationshipAttributes = (state, getters, rootState, rootGetters) => (item) => {
+      let mapped = CONFIG.hydrateRelationshipAttributes.reduce((mapped, relationship) => {
+        const FOREIGN_GETTER = rootGetters[relationship.foreignGetter]
+        const FOREIGN_KEY = relationship.foreignKey
+        const FOREIGN_NAME = relationship.foreignName
+        const FOREIGN_VALUE = relationship.foreignValue
 
-      const relatedItem = FOREIGN_GETTER(item[FOREIGN_KEY])
-      let mapped = {}
-      mapped[FOREIGN_NAME] = relatedItem ? relatedItem[FOREIGN_VALUE] : ''
+        const relatedItem = FOREIGN_GETTER(item[FOREIGN_KEY])
+        mapped[FOREIGN_NAME] = relatedItem ? relatedItem[FOREIGN_VALUE] : ''
+        return mapped
+      }, {})
       return { ...mapped, ...item }
     }
-  } else {
-    getters.hydrateRelationships = () => (item) => item
+  } else if (CONFIG.hydrateRelationshipAttributes) {
+    throw new Error('Invalid hydration config, must be an array')
+  }
+
+  if (Array.isArray(CONFIG.relationships)) {
+    getters.hydrateRelationships = (state, getters, rootState, rootGetters) => (item) => {
+      return CONFIG.relationships.reduce((mapped, relationship) => {
+        const FOREIGN_GETTER = rootGetters[relationship.foreignGetter]
+        const FOREIGN_KEY = relationship.foreignKey
+        const FOREIGN_NAME = relationship.name
+
+        const relatedItem = FOREIGN_GETTER(item[FOREIGN_KEY])
+        mapped[FOREIGN_NAME] = relatedItem || null
+        return mapped
+      }, item)
+    }
+  } else if (CONFIG.relationships) {
+    throw new Error('Invalid relationships config, must be an array')
   }
 
   return getters

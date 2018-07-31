@@ -9,12 +9,15 @@ export const build = (NAMESPACE, options) => {
   const MUTATIONS = {
     ADD: NAMESPACE + '/add',
     UPDATE: NAMESPACE + '/update',
-    DELETE: NAMESPACE + '/erase'
+    DELETE: NAMESPACE + '/delete'
   }
 
   const actions = {}
 
-  actions.store = ({ commit, state }, payload) => {
+  actions.store = ({
+    commit,
+    state
+  }, payload) => {
     return new Promise((resolve, reject) => {
       let item = { ...{ id: null }, ...payload }
       if (!item.id) {
@@ -33,21 +36,21 @@ export const build = (NAMESPACE, options) => {
     })
   }
 
-  actions.all = ({ commit, state, getters }) => {
+  actions.all = (store) => {
     return new Promise((resolve, reject) => {
-      COLLECTION.toArray().then((item) => {
-        item.map((item) => {
-          actions.get({ commit, state }, item.id).then((storedItemId) => {
-            commit(MUTATIONS.UPDATE, item, { root: true })
+      COLLECTION.toArray().then((collection) => {
+        collection.map((item) => {
+          actions.get(store, item.id).then((storedItemId) => {
+            store.commit(MUTATIONS.UPDATE, item, { root: true })
           }, (err) => {
             if (err) {
               console.log('Error getting ' + NAMESPACE)
               console.log(err)
             }
-            commit(MUTATIONS.ADD, item, { root: true })
+            store.commit(MUTATIONS.ADD, item, { root: true })
           })
         })
-        resolve(item)
+        resolve(collection)
       })
     })
   }
@@ -90,7 +93,7 @@ export const build = (NAMESPACE, options) => {
         return resolve(item)
       }
 
-      COLLECTION.where({ key: value }).first().then((item) => {
+      COLLECTION.where({ [key]: value }).first().then((item) => {
         if (item) {
           commit(MUTATIONS.ADD, item, { root: true })
           resolve(item)
@@ -103,10 +106,47 @@ export const build = (NAMESPACE, options) => {
     })
   }
 
+  actions.getAllByKey = ({
+    commit,
+    state,
+    getters
+  }, {
+    key,
+    value
+  }) => {
+    return new Promise((resolve, reject) => {
+      const items = getters.all.filter(item => item[key] === value)
+      if (items && items.length) {
+        return resolve(items)
+      }
+      COLLECTION.where({
+        [key]: value
+      }).toArray().then((items) => {
+        if (items) {
+          resolve(items.map(item => {
+            item = getters.hydrateRelationshipAttributes(item)
+            commit(MUTATIONS.ADD, item, {
+              root: true
+            })
+            debugger
+            return item
+          }))
+        } else {
+          reject(items)
+        }
+      }, (err) => {
+        reject(err)
+      })
+    })
+  }
+
   actions.unique = (store, payload) => {
     let self = actions
     return new Promise((resolve, reject) => {
-      self.getByKey(store, { key: CONFIG.uniqueKey, value: payload }).then(storedItem => {
+      self.getByKey(store, {
+        key: CONFIG.uniqueKey,
+        value: payload
+      }).then(storedItem => {
         reject(storedItem)
       }, error => {
         if (error) {

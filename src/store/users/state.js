@@ -1,4 +1,3 @@
 export default {
-  currentUser: null,
-  users: undefined
+  currentUser: null
 }
