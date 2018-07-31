@@ -1,7 +1,24 @@
-import state from './state'
-import * as getters from './getters'
-import * as mutations from './mutations'
-import * as actions from './actions'
+import { build as actionsFactory } from '../generic/actionsFactory'
+import { build as gettersFactory } from '../generic/gettersFactory'
+import { build as mutationsFactory } from '../generic/mutationsFactory'
+import { build as stateFactory } from '../generic/stateFactory'
+import * as userActions from './actions'
+import * as userGetters from './getters'
+import * as userMutations from './mutations'
+import userState from './state'
+
+const getters = { ...gettersFactory(), ...userGetters }
+const state = { ...stateFactory(), ...userState }
+const mutations = {
+  ...mutationsFactory(), ...userMutations
+}
+const actions = {
+  ...actionsFactory('users', {
+    dbTable: 'users',
+    uniqueKey: 'email'
+  }),
+  ...userActions
+}
 
 export default {
   namespaced: true,
