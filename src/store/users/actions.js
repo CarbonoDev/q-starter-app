@@ -1,26 +1,20 @@
 import User from 'services/user.service'
 
-export const getCurrentUser = async ({ commit, state, getters }, payload) => {
+export const getCurrentUser = async ({ commit, state }, payload) => {
   if (state.currentUser) return state.currentUser
-
-  return User.currentUser()
+  let user_promise = User.currentUser()
+  user_promise
     .then(user => {
-      commit('users/setCurrentUser', user, {
+      commit('users/setCurrentUser', user.attributes, {
         root: true
       })
-      return getters['currentUser']
     })
 }
 
-export const setCurrentUser = (vuex, user) => {
-  const { commit } = vuex
-  commit('users/setCurrentUser', user, {
-    root: true
-  })
-}
-
 export const destroyCurrentUser = ({ commit, state }, payload) => {
-  commit('users/setCurrentUser', null, {
+  commit('users/setCurrentUser', {
+    data: null
+  }, {
     root: true
   })
 }
