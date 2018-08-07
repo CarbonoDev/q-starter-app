@@ -17,7 +17,8 @@
     "dexie": "^2.0.4",
     "easy-requests": "^1.2.2",
     "moment": "^2.22.2",
-    "vue-i18n": "^8.0.0"
+    "vue-i18n": "^8.0.0",
+    "vue-routisan": "^2.1.1"
   },
   "devDependencies": {
     "babel-eslint": "^8.2.1",
