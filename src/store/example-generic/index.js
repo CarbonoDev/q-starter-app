@@ -2,22 +2,17 @@ import { build as actionsFactory } from '../generic/actionsFactory'
 import { build as gettersFactory } from '../generic/gettersFactory'
 import { build as mutationsFactory } from '../generic/mutationsFactory'
 import { build as stateFactory } from '../generic/stateFactory'
-import * as userActions from './actions'
-import * as userGetters from './getters'
-import * as userMutations from './mutations'
-import userState from './state'
 
-const getters = { ...gettersFactory(), ...userGetters }
-const state = { ...stateFactory(), ...userState }
+const getters = { ...gettersFactory(), ...{} }
+const state = { ...stateFactory(), ...{} }
 const mutations = {
-  ...mutationsFactory(), ...userMutations
+  ...mutationsFactory(), ...{}
 }
 const actions = {
-  ...actionsFactory('users', {
-    dbTable: 'users',
-    uniqueKey: 'email'
+  ...actionsFactory('resourceNamespace', {
+    // dbTable: 'users', // DBUndex table to store data localy
   }),
-  ...userActions
+  ...{}
 }
 
 export default {
