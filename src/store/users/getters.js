@@ -1,7 +1,6 @@
-export const currentUser = (state) => {
+export const currentUser = (state, getters, rootState, rootGetters) => {
+  if (state.currentUser) {
+    return { ...{ id: state.currentUser.id }, ...state.currentUser.attributes }
+  }
   return state.currentUser
-}
-
-export const users = (state) => {
-  return state.users
 }

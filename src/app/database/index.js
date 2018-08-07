@@ -7,7 +7,3 @@ export class Database extends Dexie {
   }
 }
 export const DB = new Database()
-
-DB.users.hook('updating', function (modifications, primKey, obj, transaction) {})
-
-DB.users.hook('creating', function (primKey, obj, transaction) {})

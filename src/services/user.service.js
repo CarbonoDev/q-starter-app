@@ -1,5 +1,5 @@
 import Service from 'easy-requests'
-import { Fire, Config } from 'helpers'
+import { Config } from 'helpers'
 
 class User extends Service {
   constructor () {
@@ -9,15 +9,11 @@ class User extends Service {
     this.config.endpoint = '/users/'
   }
 
-  static async currentUser () {
+  static currentUser () {
     let UserService = new User()
-    try {
-      let response = await UserService.http.get(Config('api.current_user_url'))
-      Fire('user:fetched', response)
-      return response
-    } catch (error) {
-      throw error
-    }
+    return UserService.http.get(Config('api.current_user_url'))
+      .then(httpResponse => httpResponse.data)
+      .then(responseBody => responseBody.data)
   }
 }
 

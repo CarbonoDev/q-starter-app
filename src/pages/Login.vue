@@ -3,43 +3,49 @@
     q-card.bg-white.card(inline)
       q-card-title
         span(my-slot="subtitle")
-          h3.title.text-indigo.color-5 Login
+          h5.title.text-indigo.color-5 Login
       q-card-main
-        form(@submit.prevent="authenticate")
+        form(@submit.prevent="authenticate" :disabled="flags.submitting")
           q-field.email(
             icon="email"
+            type="email"
             label=""
             helper=""
             error-label="We need a valid email"
-            )
-            q-input(v-model="form.username" stack-label="Email")
+          )
+            q-input(v-model="form.username" stack-label="Email" required)
           q-field.password(
             icon="lock"
             label=""
             helper=""
             error-label="Write a password"
           )
-            q-input(type="password" v-model="form.password" stack-label="Password")
-          .center
-            q-btn(type="submit" big class="bg-primary text-white") Login
+            q-input(type="password" v-model="form.password" stack-label="Password" required)
+          .row.justify-start.items-center
+            q-btn(type="submit" big class="bg-primary full-width text-white")
+              span(v-show="!flags.submitting") Login
+              q-inner-loading(:visible="flags.submitting")
+                q-spinner-dots
+
 </template>
 <script>
-import { QInput, QField, QBtn, QCard, QCardTitle, QCardMain, Notify } from 'quasar'
-import { mapActions } from 'vuex'
+import { QInput, QField, QBtn, QCard, QCardTitle, QCardMain, Notify, QInnerLoading, QSpinnerDots } from 'quasar'
 export default {
   data () {
     return {
       form: {
         username: null,
         password: null
+      },
+      flags: {
+        submitting: false
       }
     }
   },
-  mounted () {
-    console.log('Login view Loaded!')
-  },
   methods: {
-    loginError () {
+    loginError (error) {
+      console.log(error)
+
       Notify.create({
         message: 'Email or password incorrect',
         icon: 'lock',
@@ -49,27 +55,24 @@ export default {
       })
     },
     async authenticate () {
-      let username = this.form.username
-      let password = this.form.password
+      if (this.flags.submitting) { return }
+
+      this.flags.submitting = true
+      const { username, password } = this.form
       try {
         let authentication = await this.$oauth.login(username, password)
-        await this.getCurrentUser()
         let redirection = '/' // Default route
         if (this.$route.query.redirect && authentication) {
-          // If query has a prop redirect
           redirection = this.$route.query.redirect
-        } else {
-          // Otherwise redirect to default route
         }
+
         this.$router.replace(redirection)
       } catch (error) {
         // Error in Login
-        console.log(error)
-        this.loginError()
+        this.flags.submitting = false
+        this.loginError(error)
       }
-    },
-    ...mapActions('users', ['getCurrentUser', 'destroyCurrentUser'])
-
+    }
   },
   components: {
     QField,
@@ -77,7 +80,9 @@ export default {
     QBtn,
     QCard,
     QCardTitle,
-    QCardMain
+    QCardMain,
+    QInnerLoading,
+    QSpinnerDots
   }
 }
 </script>
@@ -86,8 +91,10 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  background-color: #898989;
+  height: calc(100vh - 50px);
+  background-color: #ddd;
+  // background: rgb(45,181,253);
+  // background: linear-gradient(0deg, rgba(45,181,253,1) 10%, rgba(75,161,209,1) 25%, rgba(34,195,195,1) 92%);
   .email , .password{
     margin-bottom: 2rem;
   }
@@ -96,9 +103,14 @@ export default {
     min-width: 400px;
     min-height: 320px;
     .title{
-      margin:0;
+      margin: 0;
       padding-left: 1rem;
-      border-left: 3px solid rgb(37, 70, 177)
+      border-left: 3px solid #2546b1;
+      text-transform: uppercase;
+      font-weight: 500;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      letter-spacing: 1px;
     }
   }
   form {
