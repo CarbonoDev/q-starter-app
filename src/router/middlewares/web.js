@@ -5,7 +5,9 @@ export default async function (to, from, next) {
   if (auth.isAuthenticated()) {
     return auth.currentUser()
       .then(user => {
-        return Store.dispatch('users/setCurrentUser', user)
+        return Store.commit('users/setCurrentUser', user, {
+          root: true
+        })
       }).then(result => {
         return next()
       })
