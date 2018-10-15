@@ -8,5 +8,5 @@ module.exports = function () {
       parsedEnv[key] = JSON.stringify(parsedEnv[key])
     }
   }
-  return parsedEnv
+  return Object.assign({}, process.env, parsedEnv)
 }
