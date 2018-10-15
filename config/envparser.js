@@ -4,17 +4,18 @@ const parsedEnv = DotEnv.config().parsed
 const baseEnv = DotEnvBase.config({path: '.env.example'}).parsed
 
 module.exports = function () {
+  const appEnv = {}
   // Let's stringify our variables
   for (key in parsedEnv) {
     if (typeof parsedEnv[key] === 'string') {
-      parsedEnv[key] = JSON.stringify(parsedEnv[key])
+      appEnv[key] = JSON.stringify(parsedEnv[key])
     }
   }
 
   for (key in baseEnv) {
     if (typeof process.env[key] === 'string') {
-      parsedEnv[key] = JSON.stringify(process.env[key])
+      appEnv[key] = JSON.stringify(process.env[key])
     }
   }
-  return parsedEnv
+  return appEnv
 }
